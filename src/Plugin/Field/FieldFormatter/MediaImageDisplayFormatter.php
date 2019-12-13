@@ -2,6 +2,7 @@
 
 namespace Drupal\media_image_display_entity_view\Plugin\Field\FieldFormatter;
 
+use Drupal\Core\Entity\Entity\EntityViewDisplay;
 use Drupal\Core\Entity\EntityDisplayRepositoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
@@ -43,6 +44,13 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
    * @var \Drupal\image\ImageStyleStorageInterface
    */
   protected $imageStyleStorage;
+
+  /**
+   * Entity view display.
+   *
+   * @var \Drupal\Core\Entity\Display\EntityViewDisplayInterface
+   */
+  protected $viewDisplay;
 
   public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition,
                               array $settings, $label, $view_mode, array $third_party_settings,
@@ -120,9 +128,35 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
     return $summary;
   }
 
-
   public function viewElements(FieldItemListInterface $items, $langcode) {
-    // TODO: Implement viewElements() method.
+    /** @var \Drupal\Core\Entity\FieldableEntityInterface $entity */
+    $entities = $this->getEntitiesToView($items, $langcode);
+
+    $build = [];
+    foreach ($entities as $delta => $entity) {
+      $build[$delta] = $this->getViewDisplay($entity->bundle())->build($entity);
+    }
+    return $build;
+  }
+
+  protected function getViewDisplay($bundle_id) {
+    if (!isset($this->viewDisplay[$bundle_id])) {
+      $field_name = $this->getSetting('field_name');
+      $entity_type_id = $this->fieldDefinition->getSetting('target_type');
+      if (($view_mode = $this->getSetting('view_mode')) && $view_display = EntityViewDisplay::load($entity_type_id . '.' . $bundle_id . '.' . $view_mode)) {
+        /** @var \Drupal\Core\Entity\Display\EntityViewDisplayInterface $view_display */
+        $components = $view_display->getComponents();
+        foreach ($components as $component_name => $component) {
+          if ($component_name == 'field_media_image') {
+            $component['settings']['image_style'] = $this->getSetting('image_style');
+            $view_display->setComponent('field_media_image', $component);
+          }
+        }
+
+        $this->viewDisplay[$bundle_id] = $view_display;
+      }
+    }
+    return $this->viewDisplay[$bundle_id];
   }
 
 
