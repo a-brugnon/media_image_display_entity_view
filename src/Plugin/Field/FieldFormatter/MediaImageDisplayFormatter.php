@@ -141,15 +141,17 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
 
   protected function getViewDisplay($bundle_id) {
     if (!isset($this->viewDisplay[$bundle_id])) {
-      $field_name = $this->getSetting('field_name');
+      /* todo : Make this field dynamic
+      $field_name = $this->getSetting('field_name'); */
+      $field_name = 'field_media_image';
       $entity_type_id = $this->fieldDefinition->getSetting('target_type');
       if (($view_mode = $this->getSetting('view_mode')) && $view_display = EntityViewDisplay::load($entity_type_id . '.' . $bundle_id . '.' . $view_mode)) {
         /** @var \Drupal\Core\Entity\Display\EntityViewDisplayInterface $view_display */
         $components = $view_display->getComponents();
         foreach ($components as $component_name => $component) {
-          if ($component_name == 'field_media_image') {
+          if ($component_name == $field_name) {
             $component['settings']['image_style'] = $this->getSetting('image_style');
-            $view_display->setComponent('field_media_image', $component);
+            $view_display->setComponent($field_name, $component);
           }
         }
 
