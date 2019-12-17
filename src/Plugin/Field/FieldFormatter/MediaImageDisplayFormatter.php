@@ -93,16 +93,17 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
         'image_style' => '',
         'image_field' => '',
         'link_source' => '',
+        'media_link_field' => '',
       ] + parent::defaultSettings();
   }
 
   public function settingsForm(array $form, FormStateInterface $form_state) {
     $element = parent::settingsForm($form, $form_state);
 
-    $fieldSettings = $this->getFieldSettings();
-    $entity_type = $fieldSettings['target_type'];
-    $bundle = array_shift($fieldSettings['handler_settings']['target_bundles']);
-    $fieldsList = $this->entityFieldManager->getFieldDefinitions($entity_type, $bundle);
+    $mediaFieldSettings = $this->getFieldSettings();
+    $entity_type = $mediaFieldSettings['target_type'];
+    $bundle = array_shift($mediaFieldSettings['handler_settings']['target_bundles']);
+    $mediaFieldsList = $this->entityFieldManager->getFieldDefinitions($entity_type, $bundle);
 
     $image_styles = image_style_options(FALSE);
     $description_link = Link::fromTextAndUrl(
@@ -114,7 +115,7 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
       '#title' => t('Image Field'),
       '#type' => 'select',
       '#default_value' => $this->getSetting('image_field'),
-      '#options' => $this->getImageFieldList($fieldsList),
+      '#options' => $this->getFieldList($mediaFieldsList, 'image'),
       '#required' => TRUE,
     ];
 
@@ -134,11 +135,23 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
       '#type' => 'radios',
       '#required' => TRUE,
       '#default_value' => $this->getSetting('link_source'),
-      '#empty_option' => t('None (original image)'),
       '#options' => [
         'nothing' => $this->t('Nothing'),
-        'content' => $this->t('Content'),
+//        'content' => $this->t('Content'),
         'media' => $this->t('Media')],
+    ];
+
+    $element['media_link_field'] = [
+      '#title' => t('Media Link field'),
+      '#type' => 'select',
+      '#required' => TRUE,
+      '#default_value' => $this->getSetting('media_link_field'),
+      '#options' => $this->getFieldList($mediaFieldsList, 'link'),
+      '#states' => [
+        'visible' => [
+          ':input[name="fields[field_visual][settings_edit_form][settings][link_source]"]' => array('value' => 'media')
+        ]
+      ],
     ];
 
     return $element;
@@ -147,7 +160,7 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
   public function settingsSummary() {
     $summary = [];
     $fieldSettings = $this->getFieldSettings();
-    if(count($fieldSettings['handler_settings']['target_bundles']) > 1) {
+    if (count($fieldSettings['handler_settings']['target_bundles']) > 1) {
       $summary[] = $this->t('WARNING - You have selected two media type in this field.');
       $summary[] = $this->t('This formatter may have difficult to work.');
     }
@@ -165,12 +178,15 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
     if (isset($image_styles[$image_style_setting])) {
       $summary[] = $this->t('Image style: @style', ['@style' => $image_styles[$image_style_setting]]);
     }
-  else {
+    else {
       $summary[] = $this->t('Original image');
     }
 
-
     $summary[] = $this->t('Link Source : @link_source', ['@link_source' => $this->getSetting('link_source')]);
+
+    if (!empty($this->getSetting('media_link_field'))) {
+      $summary[] = $this->t('Media Link Field : @media_link_field', ['@media_link_field' => $this->getSetting('media_link_field')]);
+    }
 
     return $summary;
   }
@@ -207,10 +223,10 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
   }
 
 
-  protected function getImageFieldList(array $fieldDefinitions = []) {
+  protected function getFieldList(array $fieldDefinitions = [], string $type) {
     $fields = [];
     foreach ($fieldDefinitions as $fieldDefinition) {
-      if ($fieldDefinition->getType() == 'image' && strpos($fieldDefinition->getName(), 'field_') !== FALSE) {
+      if ($fieldDefinition->getType() == $type && strpos($fieldDefinition->getName(), 'field_') !== FALSE) {
         $fields[$fieldDefinition->getName()] = $fieldDefinition->getLabel() . " (" . $fieldDefinition->getName() . ")";
       }
     }
