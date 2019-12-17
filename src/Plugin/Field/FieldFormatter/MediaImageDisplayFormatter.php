@@ -184,7 +184,7 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
 
     $summary[] = $this->t('Link Source : @link_source', ['@link_source' => $this->getSetting('link_source')]);
 
-    if (!empty($this->getSetting('media_link_field'))) {
+    if (!empty($this->getSetting('media_link_field') && $this->getSetting('link_source') == 'media')) {
       $summary[] = $this->t('Media Link Field : @media_link_field', ['@media_link_field' => $this->getSetting('media_link_field')]);
     }
 
@@ -196,23 +196,40 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
     $entities = $this->getEntitiesToView($items, $langcode);
 
     $build = [];
+    $media_link_field_name = $this->getSetting('media_link_field');
+
     foreach ($entities as $delta => $entity) {
-      $build[$delta] = $this->getViewDisplay($entity->bundle())->build($entity);
+      $link = '';
+      if(
+        !empty($media_link_field_name) &&
+        $this->getSetting('link_source') == 'media' &&
+        $entity->hasField($media_link_field_name) &&
+        !$entity->get($media_link_field_name)->isEmpty()
+      ){
+        $link = Url::fromUri($entity->get($media_link_field_name)->uri)->toString();
+      }
+      $buildEntity = $this->getViewDisplay($entity->bundle())->build($entity);
+      $build[$delta] = ['#theme' => 'media_image_display', '#link' => $link, '#media' => $buildEntity];
     }
+
     return $build;
   }
 
   protected function getViewDisplay($bundle_id) {
     if (!isset($this->viewDisplay[$bundle_id])) {
-      $field_name = $this->getSetting('image_field');
+      $image_field_name = $this->getSetting('image_field');
+      $media_link_field_name = $this->getSetting('media_link_field');
       $entity_type_id = $this->fieldDefinition->getSetting('target_type');
       if (($view_mode = $this->getSetting('view_mode')) && $view_display = $this->entityViewDisplayStorage->load($entity_type_id . '.' . $bundle_id . '.' . $view_mode)) {
         /** @var \Drupal\Core\Entity\Display\EntityViewDisplayInterface $view_display */
         $components = $view_display->getComponents();
         foreach ($components as $component_name => $component) {
-          if ($component_name == $field_name) {
+          if ($component_name == $image_field_name) {
             $component['settings']['image_style'] = $this->getSetting('image_style');
-            $view_display->setComponent($field_name, $component);
+            $view_display->setComponent($image_field_name, $component);
+          }
+          if ($component_name == $media_link_field_name) {
+            $view_display->removeComponent($component_name);
           }
         }
 
