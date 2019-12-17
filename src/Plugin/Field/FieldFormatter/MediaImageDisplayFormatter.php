@@ -92,6 +92,7 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
     return [
         'image_style' => '',
         'image_field' => '',
+        'link_source' => '',
       ] + parent::defaultSettings();
   }
 
@@ -128,6 +129,18 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
         ],
     ];
 
+    $element['link_source'] = [
+      '#title' => t('Link source'),
+      '#type' => 'radios',
+      '#required' => TRUE,
+      '#default_value' => $this->getSetting('link_source'),
+      '#empty_option' => t('None (original image)'),
+      '#options' => [
+        'nothing' => $this->t('Nothing'),
+        'content' => $this->t('Content'),
+        'media' => $this->t('Media')],
+    ];
+
     return $element;
   }
 
@@ -156,6 +169,8 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
       $summary[] = $this->t('Original image');
     }
 
+
+    $summary[] = $this->t('Link Source : @link_source', ['@link_source' => $this->getSetting('link_source')]);
 
     return $summary;
   }
