@@ -1,0 +1,9 @@
+<div class="media">
+  {% if link is not empty %}
+    <a href="{{ link }}">
+  {% endif %}
+    {{ media }}
+  {% if link is not empty %}
+    </a>
+  {% endif %}
+</div>

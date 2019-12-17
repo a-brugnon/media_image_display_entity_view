@@ -1,0 +1,12 @@
+<?php
+
+function media_image_display_entity_view_theme(){
+  return [
+    'media_image_display' => [
+      'variables' => [
+        'link' => '',
+        'media' => '',
+      ]
+    ]
+  ];
+}
