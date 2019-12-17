@@ -220,17 +220,17 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
       $image_field_name = $this->getSetting('image_field');
       $media_link_field_name = $this->getSetting('media_link_field');
       $entity_type_id = $this->fieldDefinition->getSetting('target_type');
-      if (($view_mode = $this->getSetting('view_mode')) && $view_display = $this->entityViewDisplayStorage->load($entity_type_id . '.' . $bundle_id . '.' . $view_mode)) {
+
+      if (($view_mode = $this->getSetting('view_mode')) &&
+        $view_display = $this->entityViewDisplayStorage->load($entity_type_id . '.' . $bundle_id . '.' . $view_mode)) {
         /** @var \Drupal\Core\Entity\Display\EntityViewDisplayInterface $view_display */
         $components = $view_display->getComponents();
-        foreach ($components as $component_name => $component) {
-          if ($component_name == $image_field_name) {
-            $component['settings']['image_style'] = $this->getSetting('image_style');
-            $view_display->setComponent($image_field_name, $component);
-          }
-          if ($component_name == $media_link_field_name) {
-            $view_display->removeComponent($component_name);
-          }
+        if(!empty($components[$image_field_name])) {
+          $components[$image_field_name]['settings']['image_style'] = $this->getSetting('image_style');
+          $view_display->setComponent($image_field_name, $components[$image_field_name]);
+        }
+        if(!empty($components[$media_link_field_name])) {
+          $view_display->removeComponent($media_link_field_name);
         }
 
         $this->viewDisplay[$bundle_id] = $view_display;
@@ -240,10 +240,10 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
   }
 
 
-  protected function getFieldList(array $fieldDefinitions = [], string $type) {
+  protected function getFieldList(array $fieldDefinitions, string $type) {
     $fields = [];
     foreach ($fieldDefinitions as $fieldDefinition) {
-      if ($fieldDefinition->getType() == $type && strpos($fieldDefinition->getName(), 'field_') !== FALSE) {
+      if ($fieldDefinition instanceof FieldDefinitionInterface && $fieldDefinition->getType() == $type && strpos($fieldDefinition->getName(), 'field_') !== FALSE) {
         $fields[$fieldDefinition->getName()] = $fieldDefinition->getLabel() . " (" . $fieldDefinition->getName() . ")";
       }
     }
