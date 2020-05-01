@@ -92,12 +92,13 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
     return [
         'image_style' => '',
         'image_field' => '',
-        'link_source' => '',
+        'link_source' => 'nothing',
         'media_link_field' => '',
       ] + parent::defaultSettings();
   }
 
   public function settingsForm(array $form, FormStateInterface $form_state) {
+
     $element = parent::settingsForm($form, $form_state);
 
     $mediaFieldSettings = $this->getFieldSettings();
