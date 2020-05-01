@@ -140,7 +140,7 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
       '#options' => [
         'nothing' => $this->t('Nothing'),
 //        'content' => $this->t('Content'),
-        'media' => $this->t('Media')],
+        ($this->getFieldList($mediaFieldsList, 'link')) ?? 'media' => $this->t('Media')],
     ];
 
     $element['media_link_field'] = [
