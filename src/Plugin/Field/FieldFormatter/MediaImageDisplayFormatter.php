@@ -106,6 +106,7 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
     $bundle = array_shift($mediaFieldSettings['handler_settings']['target_bundles']);
     $mediaFieldsList = $this->entityFieldManager->getFieldDefinitions($entity_type, $bundle);
 
+
     $image_styles = image_style_options(FALSE);
     $description_link = Link::fromTextAndUrl(
       $this->t('Configure Image Styles'),
@@ -145,12 +146,14 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
     $element['media_link_field'] = [
       '#title' => t('Media Link field'),
       '#type' => 'select',
-      '#required' => TRUE,
       '#default_value' => $this->getSetting('media_link_field'),
       '#options' => $this->getFieldList($mediaFieldsList, 'link'),
       '#states' => [
         'visible' => [
-          ':input[name="fields[field_visual][settings_edit_form][settings][link_source]"]' => array('value' => 'media')
+          ':input[name="fields['.$this->fieldDefinition->getName().'][settings_edit_form][settings][link_source]"]' => array('value' => 'media')
+        ],
+        'required' => [
+          ':input[name="fields['.$this->fieldDefinition->getName().'][settings_edit_form][settings][link_source]"]' => array('value' => 'media')
         ]
       ],
     ];
