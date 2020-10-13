@@ -255,4 +255,8 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
     }
     return $fields;
   }
+
+  public static function isApplicable(FieldDefinitionInterface $field_definition) {
+    return (!empty($field_definition->getFieldStorageDefinition()->getSetting('image_field')));
+  }
 }
