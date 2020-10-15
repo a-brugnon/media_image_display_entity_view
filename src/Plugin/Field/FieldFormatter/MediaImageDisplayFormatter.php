@@ -255,4 +255,17 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
     }
     return $fields;
   }
+
+  public static function isApplicable(FieldDefinitionInterface $field_definition) {
+    $mediaFieldSettings = $field_definition->getSettings();
+    $entity_type = $mediaFieldSettings['target_type'];
+    $bundle = array_shift($mediaFieldSettings['handler_settings']['target_bundles']);
+    $mediaFieldsList = \Drupal::service('entity_field.manager')->getFieldDefinitions($entity_type, $bundle);
+    foreach ($mediaFieldsList as $fieldDefinition) {
+      if ($fieldDefinition instanceof FieldDefinitionInterface && $fieldDefinition->getType() == 'image' && strpos($fieldDefinition->getName(), 'field_') !== FALSE) {
+        return TRUE;
+      }
+    }
+    return FALSE;
+  }
 }
