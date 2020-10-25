@@ -142,23 +142,30 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
       '#options' => [
         'nothing' => $this->t('Nothing'),
 //        'content' => $this->t('Content'),
-        ($mediaFieldLink) ?? 'media' => $this->t('Media')],
+      ]
     ];
+    if(!empty($mediaFieldLink)) {
+      $element['link_source']['#options']['media'] = $this->t('Media');
 
-    $element['media_link_field'] = [
-      '#title' => t('Media Link field'),
-      '#type' => 'select',
-      '#default_value' => $this->getSetting('media_link_field'),
-      '#options' => $mediaFieldLink,
-      '#states' => [
-        'visible' => [
-          ':input[name="fields['.$mediaFieldName.'][settings_edit_form][settings][link_source]"]' => array('value' => 'media')
+      $element['media_link_field'] = [
+        '#title' => t('Media Link field'),
+        '#type' => 'select',
+        '#default_value' => $this->getSetting('media_link_field'),
+        '#options' => $mediaFieldLink,
+        '#states' => [
+          'visible' => [
+            ':input[name="fields['.$mediaFieldName.'][settings_edit_form][settings][link_source]"]' => array('value' => 'media')
+          ],
+          'required' => [
+            ':input[name="fields['.$mediaFieldName.'][settings_edit_form][settings][link_source]"]' => array('value' => 'media')
+          ]
         ],
-        'required' => [
-          ':input[name="fields['.$mediaFieldName.'][settings_edit_form][settings][link_source]"]' => array('value' => 'media')
-        ]
-      ],
-    ];
+      ];
+    }
+
+    if(count($element['link_source']['#options']) == 1){
+      $element['link_source']['#access'] = FALSE;
+    }
 
     return $element;
   }
@@ -188,7 +195,7 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
       $summary[] = $this->t('Original image');
     }
 
-    $summary[] = $this->t('Link Source : @link_source', ['@link_source' => $this->getSetting('link_source')]);
+    $summary[] = $this->t('Link Source : @link_source', ['@link_source' => $this->getSetting('link_source') ?? $this->t('Nothing') ]);
 
     if (!empty($this->getSetting('media_link_field') && $this->getSetting('link_source') == 'media')) {
       $summary[] = $this->t('Media Link Field : @media_link_field', ['@media_link_field' => $this->getSetting('media_link_field')]);
@@ -259,7 +266,9 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
   public static function isApplicable(FieldDefinitionInterface $field_definition) {
     $mediaFieldSettings = $field_definition->getSettings();
     $entity_type = $mediaFieldSettings['target_type'];
-    $bundle = array_shift($mediaFieldSettings['handler_settings']['target_bundles']);
+    if($entity_type != 'media')
+      return FALSE;
+    $bundle = empty($mediaFieldSettings['handler_settings']['target_bundles']) ? NULL : array_shift($mediaFieldSettings['handler_settings']['target_bundles']);
     $mediaFieldsList = \Drupal::service('entity_field.manager')->getFieldDefinitions($entity_type, $bundle);
     foreach ($mediaFieldsList as $fieldDefinition) {
       if ($fieldDefinition instanceof FieldDefinitionInterface && $fieldDefinition->getType() == 'image' && strpos($fieldDefinition->getName(), 'field_') !== FALSE) {
