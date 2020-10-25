@@ -247,6 +247,9 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
 
     $build = [];
     $media_link_field_name = $this->getSetting('media_link_field');
+    $content_link_field_name = $this->getSetting('content_link_field');
+
+    $parent_entity = $items->getEntity();
 
     foreach ($entities as $delta => $entity) {
       $link = '';
@@ -257,6 +260,15 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
         !$entity->get($media_link_field_name)->isEmpty()
       ){
         $link = Url::fromUri($entity->get($media_link_field_name)->uri)->toString();
+      }
+
+      if(
+        !empty($content_link_field_name) &&
+        $this->getSetting('link_source') == 'content' &&
+        $parent_entity->hasField($content_link_field_name) &&
+        !$parent_entity->get($content_link_field_name)->isEmpty()
+      ){
+        $link = Url::fromUri($parent_entity->get($content_link_field_name)->uri)->toString();
       }
       $buildEntity = $this->getViewDisplay($entity->bundle())->build($entity);
       $build[$delta] = ['#theme' => 'media_image_display', '#link' => $link, '#media' => $buildEntity];
