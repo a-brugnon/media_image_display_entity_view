@@ -1,0 +1,17 @@
+{
+    "name": "a-brugnon/media_image_display_entity_view",
+    "description": "Allow you to manage image display in entity view mode",
+    "type": "drupal-module",
+    "authors": [
+        {
+            "name": "Arnaud Brugnon",
+            "email": "arnaud.brugnon@gmail.com"
+        },
+        {
+            "name": "Rehan Mazhar",
+            "email": "rehansyed89@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {}
+}
