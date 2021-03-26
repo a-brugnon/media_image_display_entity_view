@@ -1,0 +1,5 @@
+name: Ckeditor support for media Image Display Entity View
+type: module
+description: Allow to select display mode when render a media reference in Ckeditor
+package: AB
+core: 8.x
