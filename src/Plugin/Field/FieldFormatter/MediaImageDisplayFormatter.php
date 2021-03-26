@@ -109,8 +109,8 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
      *
      * Also gets MediaFieldList
      */
-    $formData = $this->fetchFormFieldData();
-    
+    $settingsAndFields = $this->fetchSettingsAndFields();
+
     $image_styles = image_style_options(FALSE);
     $description_link = Link::fromTextAndUrl(
       $this->t('Configure Image Styles'),
@@ -121,7 +121,7 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
       '#title' => t('Image Field'),
       '#type' => 'select',
       '#default_value' => $this->getSetting('image_field'),
-      '#options' => $this->getFieldList($formData['mediaFieldsList'], 'image'),
+      '#options' => $this->getFieldList($settingsAndFields['fields']['mediaFieldsList'], 'image'),
       '#required' => TRUE,
     ];
 
@@ -148,8 +148,8 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
     ];
 
 
-    if(!empty($formData)) {
-      foreach ($formData['formData'] as $fieldKey => $fieldValue){
+    if(!empty($settingsAndFields)) {
+      foreach ($settingsAndFields['settings'] as $fieldKey => $fieldValue){
         $element['link_source']['#options'][$fieldValue['fieldType']] = $this->t(Unicode::ucfirst($fieldValue['fieldType']));
         $element[$fieldValue['fieldType'] . '_link_field'] = [
           '#title' => t(Unicode::ucfirst($fieldValue['fieldType']) . ' Link field'),
@@ -302,35 +302,35 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
   /**
    * @return array
    */
-  protected function fetchFormFieldData(){
+  protected function fetchSettingsAndFields(): array{
     $entityTypeBundles = [];
-    $formFieldData = [];
+    $settingsAndFields = [];
     $fieldName = $this->fieldDefinition->getName();
     $mediaFieldSettings = $this->getFieldSettings();
 
-    $entityTypeBundles['media']['entityType'] = $mediaFieldSettings['target_type'];
-    $entityTypeBundles['media']['bundle'] = array_shift($mediaFieldSettings['handler_settings']['target_bundles']);
+    $entityTypeBundles[$mediaFieldSettings['target_type']] = [
+      'entityType' => $mediaFieldSettings['target_type'],
+      'bundle' => array_shift($mediaFieldSettings['handler_settings']['target_bundles'])
+      ];
 
-    $entityTypeBundles['content']['entityType'] = $this->fieldDefinition->getTargetEntityTypeId();
-    $entityTypeBundles['content']['bundle'] = $this->fieldDefinition->getTargetBundle();
+    $entityTypeBundles[$this->fieldDefinition->getTargetEntityTypeId()] = [
+      'entityType' => $this->fieldDefinition->getTargetEntityTypeId() ,
+      'bundle' => $this->fieldDefinition->getTargetBundle()
+    ];
 
-    $formFields = [];
     foreach ($entityTypeBundles as $key => $entityTypeBundle) {
       $fieldsList = $this->entityFieldManager->getFieldDefinitions($entityTypeBundle['entityType'], $entityTypeBundle['bundle']);
       $fieldLink = $this->getFieldList($fieldsList, 'link');
-      $formFields[$key] = $fieldLink;
-      $formFieldData['formData'][$key] = [
-        'fieldLinks' => $formFields[$key],
+      $settingsAndFields['settings'][$key] = [
+        'fieldLinks' => $fieldLink,
         'fieldName' => $fieldName,
         'fieldType' => $key
       ];
 
     }
 
-    // prepare $mediaFieldList for field Image
-    $formFieldData['mediaFieldsList'] = $this->entityFieldManager->getFieldDefinitions($entityTypeBundles['media']['entityType'], $entityTypeBundles['media']['bundle']);
+    $settingsAndFields['fields']['mediaFieldsList'] = $this->entityFieldManager->getFieldDefinitions($entityTypeBundles['media']['entityType'], $entityTypeBundles['media']['bundle']);
 
-    return $formFieldData;
-
+    return $settingsAndFields;
   }
 }
