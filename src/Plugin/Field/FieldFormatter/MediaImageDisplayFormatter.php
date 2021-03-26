@@ -7,6 +7,7 @@ use Drupal\Core\Entity\Entity\EntityViewDisplay;
 use Drupal\Core\Entity\EntityDisplayRepositoryInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityType;
+use Drupal\Core\Entity\EntityTypeManager;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemListInterface;
@@ -59,6 +60,7 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
    */
   protected $entityFieldManager;
 
+
   public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition,
                               array $settings, $label, $view_mode, array $third_party_settings,
                               LoggerChannelFactoryInterface $logger_factory, EntityTypeManagerInterface $entity_type_manager,
@@ -104,6 +106,7 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
 
     $element = parent::settingsForm($form, $form_state);
 
+    $targetEntityTypeId = $this->fieldDefinition->getTargetEntityTypeId();
     /**
      * Fetches Form data for type 'media' and 'content'
      *
@@ -124,6 +127,7 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
       '#options' => $this->getFieldList($settingsAndFields['fields']['mediaFieldsList'], 'image'),
       '#required' => TRUE,
     ];
+
 
     $element['image_style'] = [
       '#title' => t('Image style'),
@@ -168,6 +172,11 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
           ],
         ];
       }
+    }
+
+    $sourceDefinition = $this->entityTypeManager->getDefinition($targetEntityTypeId);
+    if(!empty($sourceDefinition->getLinkTemplates()) || !empty($sourceDefinition->getUriCallback())){
+      $element['link_source']['#options']['current_'.$targetEntityTypeId] = $this->t('Current '.Unicode::ucfirst($targetEntityTypeId));
     }
 
 
