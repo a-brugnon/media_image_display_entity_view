@@ -227,32 +227,35 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
   public function viewElements(FieldItemListInterface $items, $langcode) {
     /** @var \Drupal\Core\Entity\FieldableEntityInterface $entity */
     $entities = $this->getEntitiesToView($items, $langcode);
+    $targetEntityTypeId = $this->fieldDefinition->getTargetEntityTypeId();
 
     $build = [];
     $media_link_field_name = $this->getSetting('media_link_field');
     $content_link_field_name = $this->getSetting('content_link_field');
 
     $parent_entity = $items->getEntity();
+    $fieldName = '';
 
     foreach ($entities as $delta => $entity) {
       $link = '';
-      if(
-        !empty($media_link_field_name) &&
-        $this->getSetting('link_source') == 'media' &&
-        $entity->hasField($media_link_field_name) &&
-        !$entity->get($media_link_field_name)->isEmpty()
-      ){
-        $link = Url::fromUri($entity->get($media_link_field_name)->uri)->toString();
+      if (
+        !empty($media_link_field_name) &&  $this->getSetting('link_source') == 'media' &&
+        $entity->hasField($media_link_field_name) && !$entity->get($media_link_field_name)->isEmpty()
+      ) {
+        $fieldName = $media_link_field_name;
       }
 
-      if(
-        !empty($content_link_field_name) &&
-        $this->getSetting('link_source') == 'content' &&
-        $parent_entity->hasField($content_link_field_name) &&
-        !$parent_entity->get($content_link_field_name)->isEmpty()
-      ){
-        $link = Url::fromUri($parent_entity->get($content_link_field_name)->uri)->toString();
+      if (
+        !empty($content_link_field_name) && $this->getSetting('link_source') == 'content' &&
+        $parent_entity->hasField($content_link_field_name) && !$parent_entity->get($content_link_field_name)->isEmpty()
+      ) {
+        $fieldName = $content_link_field_name;
       }
+
+      if (!empty($fieldName))
+        $link = Url::fromUri($entity->get($media_link_field_name)->uri)->toString();
+      if($this->getSetting('link_source') == 'current_'.$targetEntityTypeId)
+        $link = $parent_entity->toUrl()->toString();
       $buildEntity = $this->getViewDisplay($entity->bundle())->build($entity);
       $build[$delta] = ['#theme' => 'media_image_display', '#link' => $link, '#media' => $buildEntity];
     }
