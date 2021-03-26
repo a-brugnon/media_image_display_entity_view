@@ -149,19 +149,21 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
 
 
     if(!empty($settingsAndFields)) {
-      foreach ($settingsAndFields['settings'] as $fieldKey => $fieldValue){
-        $element['link_source']['#options'][$fieldValue['fieldType']] = $this->t(Unicode::ucfirst($fieldValue['fieldType']));
-        $element[$fieldValue['fieldType'] . '_link_field'] = [
-          '#title' => t(Unicode::ucfirst($fieldValue['fieldType']) . ' Link field'),
+      foreach ($settingsAndFields['settings'] as $fieldKey => $settings){
+        if(empty($settings['fieldLinks']))
+          continue;
+        $element['link_source']['#options'][$settings['fieldType']] = $this->t(Unicode::ucfirst($settings['fieldType']));
+        $element[$settings['fieldType'] . '_link_field'] = [
+          '#title' => t(Unicode::ucfirst($settings['fieldType']) . ' Link field'),
           '#type' => 'select',
-          '#default_value' => $this->getSetting($fieldValue['fieldType'] . '_link_field'),
-          '#options' => $fieldValue['fieldLinks'],
+          '#default_value' => $this->getSetting($settings['fieldType'] . '_link_field'),
+          '#options' => $settings['fieldLinks'],
           '#states' => [
             'visible' => [
-              ':input[name="fields['.$fieldValue['fieldName'].'][settings_edit_form][settings][link_source]"]' => array('value' => $fieldValue['fieldType'])
+              ':input[name="fields['.$settings['fieldName'].'][settings_edit_form][settings][link_source]"]' => array('value' => $settings['fieldType'])
             ],
             'required' => [
-              ':input[name="fields['.$fieldValue['fieldName'].'][settings_edit_form][settings][link_source]"]' => array('value' => $fieldValue['fieldType'])
+              ':input[name="fields['.$settings['fieldName'].'][settings_edit_form][settings][link_source]"]' => array('value' => $settings['fieldType'])
             ]
           ],
         ];
