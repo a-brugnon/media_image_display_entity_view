@@ -1,0 +1,5 @@
+services:
+  ckeditor_support.route_subscriber:
+    class: Drupal\ckeditor_support\Routing\RouteSubscriber
+    tags:
+      - { name: event_subscriber }
