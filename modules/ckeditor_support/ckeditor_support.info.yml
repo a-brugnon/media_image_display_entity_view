@@ -3,3 +3,7 @@ type: module
 description: Allow to select display mode when render a media reference in Ckeditor
 package: AB
 core: 8.x
+
+dependencies:
+  - entity_embed:entity_embed
+  - ab:media_image_display_entity_view
