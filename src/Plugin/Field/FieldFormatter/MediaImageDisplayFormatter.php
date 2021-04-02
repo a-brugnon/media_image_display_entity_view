@@ -260,7 +260,6 @@ class MediaImageDisplayFormatter extends EntityReferenceEntityFormatter implemen
       $build[$delta] = ['#theme' => 'media_image_display', '#link' => $link, '#media' => $buildEntity];
     }
 
-    kint($build);
     return $build;
   }
 
